@@ -125,13 +125,27 @@ _Lors de la définition d'une zone, spécifier l'adresse du sous-réseau IP avec
 
 | Adresse IP source | Adresse IP destination | Type | Port src | Port dst | Action |
 | :---:             | :---:                  | :---:| :------: | :------: | :----: |
-|                   |                        |      |          |          |        |
-|                   |                        |      |          |          |        |
-|                   |                        |      |          |          |        |
-|                   |                        |      |          |          |        |
-|                   |                        |      |          |          |        |
-|                   |                        |      |          |          |        |
-|                   |                        |      |          |          |        |
+|       any         |           any          |  any |    any   |    any   |  drop  |
+|       any         |    192.168.100.0/24    |  udp |    53    |    any   | accept |
+|       any         |    192.168.100.0/24    |  tcp |    53    |    any   | accept |
+| 192.168.100.0/24  |           any          |  udp |    any   |    53    | accept |
+| 192.168.100.0/24  |           any          |  tcp |    any   |    53    | accept |
+| 192.168.100.0/24  |           any          |  icmp|    any   |    any   | accept |
+|       any         |    192.168.100.0/24    |  icmp|    any   |    any   | accept |
+| 192.168.200.0/24  |    192.168.100.0/24    |  icmp|    any   |    any   | accept |
+| 192.168.100.0/24  |    192.168.200.0/24    |  icmp|    any   |    any   | accept |
+| 192.168.100.0/24  |           any          |  tcp |    any   |    80    | accept |
+|       any         |    192.168.100.0/24    |  tcp |    80    |    any   | accept |
+| 192.168.100.0/24  |           any          |  tcp |    any   |    8080  | accept |
+|       any         |    192.168.100.0/24    |  tcp |    8080  |    any   | accept |
+| 192.168.100.0/24  |           any          |  tcp |    any   |    443   | accept |
+|       any         |    192.168.100.0/24    |  tcp |    443   |    any   | accept |
+| 192.168.200.0/24  |           any          |  tcp |    80    |    any   | accept |
+|       any         |    192.168.200.0/24    |  tcp |    any   |    80    | accept |
+| 192.168.100.0/24  |    192.168.200.0/24    |  tcp |    any   |    22    | accept |
+| 192.168.100.0/24  |    192.168.100.2       |  tcp |    any   |    22    | accept |
+| 192.168.200.0/24  |    192.168.100.0/24    |  tcp |    22    |    any   | accept |
+| 192.168.100.2     |    192.168.100.0/24    |  tcp |    22    |    any   | accept |
 
 ---
 
