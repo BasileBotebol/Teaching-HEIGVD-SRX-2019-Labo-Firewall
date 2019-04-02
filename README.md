@@ -242,6 +242,8 @@ ping 192.168.200.3
 
 **LIVRABLE : capture d'écran de votre tentative de ping.**  
 
+![Fail to ping](/figures/fail_ping_lan_to_dmz.jpg)
+
 ---
 
 En effet, la communication entre les clients dans le LAN et les serveurs dans la DMZ doit passer à travers le Firewall. Il faut donc définir le Firewall comme passerelle par défaut pour le client dans le LAN et le serveur dans la DMZ.
@@ -274,6 +276,8 @@ ping 192.168.100.3
 
 **LIVRABLE : capture d'écran de votre nouvelle tentative de ping.**
 
+
+![Successful ping](/figures/successful_ping_from_dmz_to_lan.jpg)
 ---
 
 La communication est maintenant possible entre les deux machines. Pourtant, si vous essayez de communiquer depuis le client ou le serveur vers l'Internet, ça ne devrait pas encore fonctionner sans une manipulation supplémentaire au niveau du firewall. Vous pouvez le vérifier avec un ping depuis le client ou le serveur vers une adresse Internet. 
@@ -287,6 +291,8 @@ ping 8.8.8.8
 ---
 
 **LIVRABLE : capture d'écran de votre ping vers l'Internet.**
+
+![Successful ping](/figures/successful_ping_from_dmz_to_lan_fail_from_dmz_to_wan.jpg)
 
 ---
 
@@ -383,6 +389,9 @@ Commandes iptables :
 
 ```bash
 LIVRABLE : Commandes iptables
+iptables -A FORWARD -p icmp --icmp-type 8 -s 192.168.100.0/24 -o eth0 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -p icmp --icmp-type 8 -s 192.168.100.0/24 -d 192.168.200.0/24 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -p icmp --icmp-type 8 -s 192.168.200.0/24 -d 192.168.100.0/24 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 ```
 ---
 
@@ -398,8 +407,12 @@ ping 8.8.8.8
 ``` 	            
 Faire une capture du ping.
 
+
 ---
 **LIVRABLE : capture d'écran de votre ping vers l'Internet.**
+
+
+![Successful ping](/figures/successful_ping_to_8888.jpg)
 
 ---
 
@@ -411,18 +424,18 @@ Faire une capture du ping.
 
 | De Client\_in\_LAN à | OK/KO | Commentaires et explications |
 | :---                 | :---: | :---                         |
-| Interface DMZ du FW  |       |                              |
-| Interface LAN du FW  |       |                              |
-| Client LAN           |       |                              |
-| Serveur WAN          |       |                              |
+| Interface DMZ du FW  |   KO  |                              |
+| Interface LAN du FW  |   KO  |                              |
+| Client LAN           |   OK  |                              |
+| Serveur WAN          |   OK  |                              |
 
 
 | De Server\_in\_DMZ à | OK/KO | Commentaires et explications |
 | :---                 | :---: | :---                         |
-| Interface DMZ du FW  |       |                              |
-| Interface LAN du FW  |       |                              |
-| Serveur DMZ          |       |                              |
-| Serveur WAN          |       |                              |
+| Interface DMZ du FW  |  KO   |                              |
+| Interface LAN du FW  |  KO   |                              |
+| Serveur DMZ          |  OK   |                              |
+| Serveur WAN          |  KO   |                              |
 
 
 ## Règles pour le protocole DNS
@@ -442,6 +455,9 @@ ping www.google.com
 
 **LIVRABLE : capture d'écran de votre ping.**
 
+![Failed ping](/figures/fail_to_ping_google_from_lan.jpg)
+
+
 ---
 
 * Créer et appliquer la règle adéquate pour que la **condition 1 du cahier des charges** soit respectée.
@@ -452,6 +468,8 @@ Commandes iptables :
 
 ```bash
 LIVRABLE : Commandes iptables
+iptables -A FORWARD -p udp -s 192.168.100.0/24 --dport 53 -o eth0 -m conntrack --ctstate NEW,RELATED,ESTABLISHED -j ACCEPT
+iptables -A FORWARD -p tcp -s 192.168.100.0/24 --dport 53 -o eth0 -m conntrack --ctstate NEW,RELATED,ESTABLISHED -j ACCEPT
 ```
 
 ---
@@ -464,6 +482,7 @@ LIVRABLE : Commandes iptables
 ---
 
 **LIVRABLE : capture d'écran de votre ping.**
+Suite à un problème de configuration, nous n'avons pas pu tester toutes nos commandes, et ne pouvons donc pas affirmer qu'elles fonctionnent
 
 ---
 
@@ -475,7 +494,8 @@ LIVRABLE : Commandes iptables
 ---
 **Réponse**
 
-**LIVRABLE : Votre réponse ici...**
+**LIVRABLE : On cherche a faire une résolution DNS, donc par protocole udp depuis le LAN au WAN. Par défaut, le FIREWALL drop ces messages et donc,
+la résolution n'a jamais lieu.**
 
 ---
 
@@ -496,6 +516,14 @@ Commandes iptables :
 
 ```bash
 LIVRABLE : Commandes iptables
+iptables -A FORWARD -p tcp -s 192.168.100.0/24 --dport 80 -j ACCEPT
+iptables -A FORWARD -p tcp -d 192.168.100.0/24 --sport 80 -j ACCEPT
+iptables -A FORWARD -p tcp -s 192.168.100.0/24 --dport 8080 -j ACCEPT
+iptables -A FORWARD -p tcp -d 192.168.100.0/24 --sport 8080 -j ACCEPT
+
+iptables -A FORWARD -p tcp -s 192.168.100.0/24 --dport 443 -j ACCEPT
+iptables -A FORWARD -p tcp -d 192.168.100.0/24 --sport 443 -j ACCEPT
+
 ```
 
 ---
@@ -508,6 +536,8 @@ Commandes iptables :
 
 ```bash
 LIVRABLE : Commandes iptables
+iptables -A FORWARD -p tcp -s 192.168.200.0/24 --sport 80 -j ACCEPT
+iptables -A FORWARD -p tcp -d 192.168.200.0/24 --dport 80 -j ACCEPT
 ```
 ---
 
@@ -519,6 +549,7 @@ LIVRABLE : Commandes iptables
 ---
 
 **LIVRABLE : capture d'écran.**
+Suite à un problème de configuration, nous n'avons pas pu tester toutes nos commandes, et ne pouvons donc pas affirmer qu'elles fonctionnent
 
 ---
 
@@ -536,6 +567,11 @@ Commandes iptables :
 
 ```bash
 LIVRABLE : Commandes iptables
+iptables -A FORWARD -p tcp -s 192.168.100.0/24 -d 192.168.200.0/24 --dport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -d 192.168.100.0/24 -s 192.168.200.0/24 --sport 22 -j ACCEPT
+
+iptables -A INPUT -p tcp -s 192.168.100.0/24 --dport 22 -j ACCEPT
+iptables -A OUTPUT -p tcp -d 192.168.100.0/24 --sport 22 -j ACCEPT
 ```
 
 ---
@@ -549,6 +585,7 @@ ssh root@192.168.200.3 (password : celui que vous avez configuré)
 ---
 
 **LIVRABLE : capture d'écran de votre connexion ssh.**
+Suite à un problème de configuration, nous n'avons pas pu tester toutes nos commandes, et ne pouvons donc pas affirmer qu'elles fonctionnent
 
 ---
 
@@ -560,7 +597,8 @@ ssh root@192.168.200.3 (password : celui que vous avez configuré)
 ---
 **Réponse**
 
-**LIVRABLE : Votre réponse ici...**
+**LIVRABLE : SSH permet d'ouvrir une connexion sécurisée sur une machine à distance**
+Suite à un problème de configuration, nous n'avons pas pu tester toutes nos commandes, et ne pouvons donc pas affirmer qu'elles fonctionnent
 
 ---
 
@@ -573,7 +611,7 @@ ssh root@192.168.200.3 (password : celui que vous avez configuré)
 ---
 **Réponse**
 
-**LIVRABLE : Votre réponse ici...**
+**LIVRABLE : Il faut faire attention à bien donner des adresses IP de source et de déstination spécifiques, afin que seul les machines données puissent se connecter.**
 
 ---
 
@@ -589,5 +627,8 @@ A présent, vous devriez avoir le matériel nécessaire afin de reproduire la ta
 ---
 
 **LIVRABLE : capture d'écran avec toutes vos règles.**
+
+![All rules](/figures/all_ip_tables.jpg)
+
 
 ---
