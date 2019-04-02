@@ -482,7 +482,8 @@ iptables -A FORWARD -p tcp -s 192.168.100.0/24 --dport 53 -o eth0 -m conntrack -
 ---
 
 **LIVRABLE : capture d'écran de votre ping.**
-Suite à un problème de configuration, nous n'avons pas pu tester toutes nos commandes, et ne pouvons donc pas affirmer qu'elles fonctionnent
+
+![successful ping to google](/figures/pingToGoogleSuccess.PNG)
 
 ---
 
@@ -549,7 +550,8 @@ iptables -A FORWARD -p tcp -d 192.168.200.0/24 --dport 80 -j ACCEPT
 ---
 
 **LIVRABLE : capture d'écran.**
-Suite à un problème de configuration, nous n'avons pas pu tester toutes nos commandes, et ne pouvons donc pas affirmer qu'elles fonctionnent
+
+![wget working](/figures/wgetHEIGworks.PNG)
 
 ---
 
@@ -585,7 +587,8 @@ ssh root@192.168.200.3 (password : celui que vous avez configuré)
 ---
 
 **LIVRABLE : capture d'écran de votre connexion ssh.**
-Suite à un problème de configuration, nous n'avons pas pu tester toutes nos commandes, et ne pouvons donc pas affirmer qu'elles fonctionnent
+
+![ssh connecion works](/figures/sshConnectionWorks.PNG)
 
 ---
 
@@ -630,5 +633,61 @@ A présent, vous devriez avoir le matériel nécessaire afin de reproduire la ta
 
 ![All rules](/figures/all_ip_tables.jpg)
 
+**Résumé des commandes données :**
+```bash
+
+#Définition des règles avec état
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+#Point 8 - règles par defaut
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+
+#point 2
+#LAN to WAN
+iptables -A FORWARD -p icmp --icmp-type 8 -s 192.168.100.0/24 -o eth0 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+
+#LAN to DMZ
+iptables -A FORWARD -p icmp --icmp-type 8 -s 192.168.100.0/24 -d 192.168.200.0/24 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+
+#DMZ to LAN
+iptables -A FORWARD -p icmp --icmp-type 8 -s 192.168.200.0/24 -d 192.168.100.0/24 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+
+
+#Point 1
+iptables -A FORWARD -p udp -s 192.168.100.0/24 --dport 53 -o eth0 -m conntrack --ctstate NEW,RELATED,ESTABLISHED -j ACCEPT
+iptables -A FORWARD -p tcp -s 192.168.100.0/24 --dport 53 -o eth0 -m conntrack --ctstate NEW,RELATED,ESTABLISHED -j ACCEPT
+
+
+#Point 3
+iptables -A FORWARD -p tcp -s 192.168.100.0/24 --dport 80 -j ACCEPT
+iptables -A FORWARD -p tcp -d 192.168.100.0/24 --sport 80 -j ACCEPT
+iptables -A FORWARD -p tcp -s 192.168.100.0/24 --dport 8080 -j ACCEPT
+iptables -A FORWARD -p tcp -d 192.168.100.0/24 --sport 8080 -j ACCEPT
+
+
+#Point 4
+iptables -A FORWARD -p tcp -s 192.168.100.0/24 --dport 443 -j ACCEPT
+iptables -A FORWARD -p tcp -d 192.168.100.0/24 --sport 443 -j ACCEPT
+
+
+#Point 5
+iptables -A FORWARD -p tcp -s 192.168.200.0/24 --sport 80 -j ACCEPT
+iptables -A FORWARD -p tcp -d 192.168.200.0/24 --dport 80 -j ACCEPT
+
+
+#Point 6
+iptables -A FORWARD -p tcp -s 192.168.100.0/24 -d 192.168.200.0/24 --dport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -d 192.168.100.0/24 -s 192.168.200.0/24 --sport 22 -j ACCEPT
+
+
+#Point 7
+iptables -A INPUT -p tcp -s 192.168.100.0/24 --dport 22 -j ACCEPT
+iptables -A OUTPUT -p tcp -d 192.168.100.0/24 --sport 22 -j ACCEPT
+
+```
 
 ---
